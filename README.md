@@ -1,5 +1,21 @@
 # Cordova Push Notifications Plugin for Android, iOS, WP8, Windows8, BlackBerry 10 and Amazon Fire OS
 
+## INTRODUCTION
+
+This branch works with the payload sent by Parse. They have two types of message : **Plain text** and **JSON**. Both payloads are sent inside a `data` key. In the original plugin the notifications are shown but the data is not set. For now, this branch has Android Support for Parse Push. Notificationts are not sent as open to Parse servers. You will have to make your own system to check this.
+
+This is the structure if you are going to use JSON either on the dashboard or using the REST API:
+
+```json 
+{
+    "title": "If this is not set, it uses the Application name",
+    "message": "Mandatory",
+    "alert": "This works too but if it is set, message is ignored as a message. This is special because Parse sent it as part of their Plain Text Message Type",
+    "msgcnt": "It must be a number",
+    "notId": "It you don't want to group the notifications, set a random number"
+}
+```
+
 ## DESCRIPTION
 
 This plugin is for use with [Cordova](http://incubator.apache.org/cordova/), and allows your application to receive push notifications on Amazon Fire OS, Android, iOS, Windows Phone and Windows8 devices.
