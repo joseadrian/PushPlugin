@@ -1,8 +1,10 @@
 # Cordova Push Notifications Plugin for Android, iOS, WP8, Windows8, BlackBerry 10 and Amazon Fire OS
 
-## INTRODUCTION
+## [Parse](http://parse.com) + Android
 
-This branch works with the payload sent by Parse. They have two types of message : **Plain text** and **JSON**. Both payloads are sent inside a `data` key. In the original plugin the notifications are shown but the data is not set. For now, this branch has Android Support for Parse Push. Notificationts are not sent as open to Parse servers. You will have to make your own system to check this.
+> Note: Most of other services like Parse have phonegap/cordova plugins so maybe creating a different branch for different services won't be necessary. But I needed Android support and couldn't find any solution so here is mine. 
+
+This branch works with the payload sent by Parse. They have two types of message: **Plain text** and **JSON**. Both payloads are sent inside a `data` key. In the original plugin the notifications are shown without the title and messasge. If notificationts are open they are not registered anywhere, you will have to make your own system to check this.
 
 This is the structure if you are going to use JSON either on the dashboard or using the REST API:
 
@@ -15,6 +17,12 @@ This is the structure if you are going to use JSON either on the dashboard or us
     "notId": "It you don't want to group the notifications, set a random number"
 }
 ```
+
+## Parse examples
+
+![JSON](http://i.imgur.com/ox7UBna.png)
+
+![Plain text](http://i.imgur.com/rBrTIZf.png)
 
 ## DESCRIPTION
 
