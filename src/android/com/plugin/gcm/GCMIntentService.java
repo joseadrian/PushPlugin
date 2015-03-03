@@ -19,7 +19,7 @@ import com.google.android.gcm.GCMBaseIntentService;
 public class GCMIntentService extends GCMBaseIntentService {
 
 	private static final String TAG = "GCMIntentService";
-	
+
 	public GCMIntentService() {
 		super("GCMIntentService");
 	}
@@ -63,6 +63,51 @@ public class GCMIntentService extends GCMBaseIntentService {
 		Bundle extras = intent.getExtras();
 		if (extras != null)
 		{
+            // Get application name
+            String appName = getAppName(this);
+
+            Log.d(TAG, "onMessage - extras: " +  extras);
+
+            // Checking if push is from Parse
+            // Because they send the payload within data
+            if(extras.getString("data") != null && extras.getString("data").length() != 0) {
+                try
+                {
+                    JSONObject json = new JSONObject(extras.getString("data"));
+
+                    Log.e(TAG, "onMessage - JSON data: " + json);
+
+                    // check common case: if the Message Type is Plain Text
+                    // "alert" could be also part of a JSON Message Type too
+                    if(json.has("alert")) {
+                        extras.putString("message", json.optString("alert"));
+                    } else if(json.has("message")) {
+                        extras.putString("message", json.optString("message"));
+                    }
+
+                    // If no title is provided use the application name
+                    if(json.has("title")) {
+                        extras.putString("title", json.optString("title"));
+                    } else {
+                        extras.putString("title", appName);
+                    }
+
+                    // if set, allow multiple notifications
+                    if(json.has("notId")) {
+                        extras.putString("notId", json.optString("notId"));
+                    }
+
+                    // get message count if it exist
+                    if(json.has("msgcnt") && json.optString("msgcnt") != "") {
+                        extras.putString("msgcnt", json.optString("msgcnt"));
+                    }
+                }
+                catch( JSONException e)
+                {
+                    Log.e(TAG, "onMessage: JSON exception from Parse payload");
+                }
+            }
+
 			// if we are in the foreground, just surface the payload, else post it to the statusbar
             if (PushPlugin.isInForeground()) {
 				extras.putBoolean("foreground", true);
@@ -73,23 +118,22 @@ public class GCMIntentService extends GCMBaseIntentService {
 
                 // Send a notification if there is a message
                 if (extras.getString("message") != null && extras.getString("message").length() != 0) {
-                    createNotification(context, extras);
+                    createNotification(context, extras, appName);
                 }
             }
         }
 	}
 
-	public void createNotification(Context context, Bundle extras)
+	public void createNotification(Context context, Bundle extras, String appName)
 	{
 		NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-		String appName = getAppName(this);
 
 		Intent notificationIntent = new Intent(this, PushHandlerActivity.class);
 		notificationIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		notificationIntent.putExtra("pushBundle", extras);
 
 		PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-		
+
 		int defaults = Notification.DEFAULT_ALL;
 
 		if (extras.getString("defaults") != null) {
@@ -97,7 +141,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 				defaults = Integer.parseInt(extras.getString("defaults"));
 			} catch (NumberFormatException e) {}
 		}
-		
+
 		NotificationCompat.Builder mBuilder =
 			new NotificationCompat.Builder(context)
 				.setDefaults(defaults)
@@ -119,9 +163,9 @@ public class GCMIntentService extends GCMBaseIntentService {
 		if (msgcnt != null) {
 			mBuilder.setNumber(Integer.parseInt(msgcnt));
 		}
-		
+
 		int notId = 0;
-		
+
 		try {
 			notId = Integer.parseInt(extras.getString("notId"));
 		}
@@ -131,20 +175,20 @@ public class GCMIntentService extends GCMBaseIntentService {
 		catch(Exception e) {
 			Log.e(TAG, "Number format exception - Error parsing Notification ID" + e.getMessage());
 		}
-		
+
 		mNotificationManager.notify((String) appName, notId, mBuilder.build());
 	}
-	
+
 	private static String getAppName(Context context)
 	{
-		CharSequence appName = 
+		CharSequence appName =
 				context
 					.getPackageManager()
 					.getApplicationLabel(context.getApplicationInfo());
-		
+
 		return (String)appName;
 	}
-	
+
 	@Override
 	public void onError(Context context, String errorId) {
 		Log.e(TAG, "onError - errorId: " + errorId);
